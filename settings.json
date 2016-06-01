@@ -1,0 +1,16 @@
+{
+  "actionable": true, 
+  "help": "https://github.com/weirdpattern/alfred-chmod-workflow", 
+  "update": {
+    "frequency": 86400,
+    "include-prereleases": false,
+    "enable": true,
+    "repository": {
+      "github": {
+        "username": "weirdpattern",
+        "repository": "alfred-chmod-workflow"
+      }
+    }
+  }, 
+  "version": "0.1.0-prerelease"
+}
