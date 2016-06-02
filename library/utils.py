@@ -172,3 +172,10 @@ def parse_version(string):
 
 def register_path(path):
     sys.path.insert(0, path)
+
+
+def send_notification(title, message):
+    command = "osascript -e 'display notification \"{1}\" with title \"{0}\"'"
+    command = command.format(title.replace('"', r'\"'), message.replace('"', r'\"'))
+    
+    os.system(command)

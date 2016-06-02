@@ -4,7 +4,7 @@ import subprocess
 
 class WorkflowActions(dict):
     icons = os.path.abspath(os.path.dirname(__file__))
-    descriptions = {'--force-update': 'Use this option to force updates',
+    descriptions = {'--update': 'Use this option to force an update',
                     '--check-for-update': 'Use this option to check for updates',
                     '--enable-updates': 'Use this option to enable updates',
                     '--disable-updates': 'Use this option to disable updates',
@@ -19,18 +19,20 @@ class WorkflowActions(dict):
         super(WorkflowActions, self).__init__()
 
         self.workflow = workflow
-        self.update_keys = ['--check-for-update', '--force-update']
+        self.update_keys = ['--update', '--check-for-update']
 
         self['--help'] = self.show_help()
         self['--version'] = self.show_version()
 
-        self['--update-help'] = self.show_update_help()
         self['--update-settings'] = self.show_update_settings()
 
         if workflow.setting('update'):
             settings = workflow.setting('update')
-            self['--force-update'] = self.force_update()
+            self['--update-help'] = self.show_update_help()
+
+            self['--update'] = self.force_update()
             self['--check-for-update'] = self.check_update()
+
             self.configure_update_mode_settings(settings)
             self.configure_update_frequency_settings(settings)
             self.configure_update_prereleases_settings(settings)
@@ -67,23 +69,20 @@ class WorkflowActions(dict):
                 self.workflow.item('Updates not supported',
                                    'Workflow: {0}'.format(self.workflow.name), WorkflowActions.customizer('sad.png'))
 
-            elif settings['mode'] == 'disable':
+            elif not settings['enabled']:
                 self.workflow.item('Updates are disabled for this workflow',
                                    'Use "--update-mode auto|manual" to enable updates',
                                    WorkflowActions.customizer('disable.png'))
             else:
-                if settings['mode'] == 'auto':
-                    mode = 'The workflow will be automatically updated when a new version is available'
-                else:
-                    mode = 'The workflow will display an option letting you choose when to update'
+                self.workflow.item('Enabled: {0}'.format(settings['enabled']),
+                                   'Workflow will automatically search for updates',
+                                   WorkflowActions.customizer('update.png'))
 
-                self.workflow.item('Mode: {0}'.format(settings['mode']), mode, WorkflowActions.customizer('update.png'))
-
-                self.workflow.item('Frequency: {0}'.format(settings['frequency']),
+                self.workflow.item('Frequency: {0}'.format(settings['frequency'] or 86400),
                                    'The frequency with which the workflow will look for new versions',
                                    WorkflowActions.customizer('time.png'))
 
-                self.workflow.item('Include releases: {0}'.format(settings['include-prereleases']),
+                self.workflow.item('Include releases: {0}'.format(settings['include-prereleases'] or False),
                                    'Whether pre-releases will be included in the updates or not',
                                    WorkflowActions.customizer('release.png'))
 
@@ -99,10 +98,10 @@ class WorkflowActions(dict):
 
         self.remove(self.update_keys, ['--enable-updates', '--disable-updates'])
 
-        if not settings['enable']:
-            options['--enable-updates'] = self.update_option('update', 'enable', True, callback)
+        if not settings['enabled']:
+            options['--enable-updates'] = self.update_option('update', 'enabled', True, callback)
         else:
-            options['--disable-updates'] = self.update_option('update', 'enable', False, callback)
+            options['--disable-updates'] = self.update_option('update', 'enabled', False, callback)
 
         self.update(options)
         self.update_keys.extend(options.keys())

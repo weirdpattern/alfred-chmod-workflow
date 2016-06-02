@@ -2,13 +2,13 @@
   "actionable": true, 
   "help": "https://github.com/weirdpattern/alfred-chmod-workflow", 
   "update": {
-    "frequency": 86400,
-    "include-prereleases": false,
-    "enable": true,
+    "enabled": true, 
+    "frequency": 86400, 
+    "include-prereleases": false, 
     "repository": {
       "github": {
-        "username": "weirdpattern",
-        "repository": "alfred-chmod-workflow"
+        "repository": "alfred-chmod-workflow", 
+        "username": "weirdpattern"
       }
     }
   }, 

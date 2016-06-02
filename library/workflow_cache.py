@@ -50,8 +50,9 @@ class WorkflowCache:
         return age > threshold > 0
 
     def read(self, filename, regenerator, threshold=60):
-        if not self.stale(filename, threshold):
-            path = os.path.join(self.directory, '{0}.{1}'.format(filename, self.serializer.name or 'custom'))
+        path = os.path.join(self.directory, '{0}.{1}'.format(filename, self.serializer.name or 'custom'))
+
+        if os.path.exists(path) and not self.stale(filename, threshold):
             with open(path, 'rb') as handle:
                 return self.serializer.load(handle)
 
@@ -63,7 +64,6 @@ class WorkflowCache:
 
         return data
 
-    @atomic
     def save(self, filename, data):
         if not data:
             return False

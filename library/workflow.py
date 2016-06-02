@@ -4,7 +4,7 @@ import os
 import sys
 import plistlib
 
-from utils import decode, register_path
+from utils import decode, register_path, send_notification
 from workflow_version import Version
 from workflow_data import WorkflowData
 from workflow_item import WorkflowItem
@@ -188,6 +188,8 @@ class Workflow:
             setting = self._settings.get(setting)
             for param in params:
                 setting = setting[param]
+                if not setting:
+                    return None
 
             return setting
 
@@ -203,8 +205,8 @@ class Workflow:
             self._updater = WorkflowUpdater(self)
 
         if self.setting('update', 'enabled'):
-            frequency = int(self.setting('update', 'frequency'))
-            if force or self.cache.read('.updater', None, frequency):
+            frequency = int(self.setting('update', 'frequency') or 86400)
+            if force or self.cache.read('.workflow_updater', None, frequency):
                 self._updater.check_update()
 
     def item(self, title, subtitle, customizer=None):
@@ -230,8 +232,8 @@ class Workflow:
         register_path(path)
 
     @staticmethod
-    def notify(self, title, message):
-        os.system('osascript -e \'display notification "{0}" "{1}"\''.format(title, message))
+    def notify(title, message):
+        send_notification(title, message)
 
     @staticmethod
     def run(main, workflow):
