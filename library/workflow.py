@@ -3,15 +3,17 @@ from __future__ import print_function, unicode_literals
 import os
 import sys
 import plistlib
+import threading
 
-from utils import decode, register_path, send_notification
 from workflow_version import Version
 from workflow_data import WorkflowData
 from workflow_item import WorkflowItem
 from workflow_cache import WorkflowCache
 from workflow_actions import WorkflowActions
-from workflow_updater import WorkflowUpdater
 from workflow_settings import WorkflowSettings
+
+from workflow_updater import check_update, install_update
+from utils import decode, register_path, send_notification, item_customizer, request
 
 
 class Workflow:
@@ -196,18 +198,28 @@ class Workflow:
     def save_settings(self):
         self._settings.save()
 
-    def update(self, force=False):
-        if not self._updater:
-            self._updater = WorkflowUpdater(self)
-
-    def check_update(self, force=False):
-        if not self._updater:
-            self._updater = WorkflowUpdater(self)
-
+    def install_update(self):
         if self.setting('update', 'enabled'):
-            frequency = int(self.setting('update', 'frequency') or 86400)
-            if force or self.cache.read('.workflow_updater', None, frequency):
-                self._updater.check_update()
+            frequency = int(self.setting('update', 'frequency') or 1) * 86400
+            cached = self.cache.read('.workflow_updater', None, frequency)
+            if cached:
+                newest = Version(cached['version'])
+                if newest > self.version:
+                    Workflow.background(install_update, 'install_update', self, cached['url'])
+
+    def check_update(self, forced=False):
+        if self.setting('update', 'enabled'):
+            frequency = int(self.setting('update', 'frequency') or 1) * 86400
+            cached = self.cache.read('.workflow_updater', None, frequency)
+            if forced or cached is None:
+                mode = 'never'
+
+                if forced:
+                    mode = 'always'
+                elif cached:
+                    mode = 'only_when_available'
+
+                Workflow.background(check_update, 'check_update', self, mode)
 
     def item(self, title, subtitle, customizer=None):
         item = WorkflowItem(title, subtitle)
@@ -232,22 +244,31 @@ class Workflow:
         register_path(path)
 
     @staticmethod
-    def notify(title, message):
+    def background(func, title, *args):
+        threading.Thread(None, func, title, args).start()
+
+    @staticmethod
+    def notification(title, message):
         send_notification(title, message)
 
     @staticmethod
-    def run(main, workflow):
-        def with_info(item):
-            item.icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'icons/sad.png')
-            item.valid = False
+    def getRaw(url, params=None, headers=None, cookies=None, auth=None, redirection=True, timeout=60):
+        return request('GET', url, 'raw', None, params, headers, cookies, auth, redirection, timeout)
 
+    @staticmethod
+    def getJSON(url, params=None, headers=None, cookies=None, auth=None, redirection=True, timeout=60):
+        return request('GET', url, 'json', None, params, headers, cookies, auth, redirection, timeout)
+
+    @staticmethod
+    def run(main, workflow):
         try:
+            workflow.check_update(False)
             main(workflow)
+            return 0
         except Exception as ex:
             workflow.item('Oops, something went wrong',
                           'Workflow {0} failed with exception - {1}'.format(workflow.name, ex.message),
-                          with_info)
+                          item_customizer('sad.png'))
 
             workflow.feedback()
-
-        return 0
+            return 1

@@ -1,7 +1,6 @@
 import os
 import time
-
-from utils import PickleSerializer, ensure_path, atomic, atomic_write
+from utils import PickleSerializer, ensure_path, atomic_write, atomic
 
 
 class WorkflowCache:
@@ -64,10 +63,8 @@ class WorkflowCache:
 
         return data
 
+    @atomic
     def save(self, filename, data):
-        if not data:
-            return False
-
         path = os.path.join(self.directory, '{0}.{1}'.format(filename, self.serializer.name or 'custom'))
         with atomic_write(path, 'wb') as handle:
             self.serializer.dump(data, handle)
@@ -81,3 +78,4 @@ class WorkflowCache:
             return True
 
         return False
+

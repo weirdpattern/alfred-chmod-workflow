@@ -1,9 +1,9 @@
-import os
 import subprocess
+
+from utils import item_customizer
 
 
 class WorkflowActions(dict):
-    icons = os.path.abspath(os.path.dirname(__file__))
     descriptions = {'--update': 'Use this option to force an update',
                     '--check-for-update': 'Use this option to check for updates',
                     '--enable-updates': 'Use this option to enable updates',
@@ -30,7 +30,7 @@ class WorkflowActions(dict):
             settings = workflow.setting('update')
             self['--update-help'] = self.show_update_help()
 
-            self['--update'] = self.force_update()
+            self['--update'] = self.install_update()
             self['--check-for-update'] = self.check_update()
 
             self.configure_update_mode_settings(settings)
@@ -43,7 +43,7 @@ class WorkflowActions(dict):
                 subprocess.call(['open', self.workflow.setting('help')])
             else:
                 self.workflow.item('Not available', 'Workflow: {0}'.format(self.workflow.name),
-                                   WorkflowActions.customizer('sad.png'))
+                                   item_customizer('sad.png'))
 
             return True
 
@@ -53,10 +53,10 @@ class WorkflowActions(dict):
         def display():
             if self.workflow.version:
                 self.workflow.item('{0}'.format(str(self.workflow.version)), 'Workflow: {0}'.format(self.workflow.name),
-                                   WorkflowActions.customizer('info.png'))
+                                   item_customizer('info.png'))
             else:
                 self.workflow.item('Not available', 'Workflow: {0}'.format(self.workflow.name),
-                                   WorkflowActions.customizer('sad.png'))
+                                   item_customizer('sad.png'))
 
             return True
 
@@ -67,24 +67,24 @@ class WorkflowActions(dict):
             settings = self.workflow.setting('update')
             if not settings:
                 self.workflow.item('Updates not supported',
-                                   'Workflow: {0}'.format(self.workflow.name), WorkflowActions.customizer('sad.png'))
+                                   'Workflow: {0}'.format(self.workflow.name), item_customizer('sad.png'))
 
             elif not settings['enabled']:
                 self.workflow.item('Updates are disabled for this workflow',
                                    'Use "--update-mode auto|manual" to enable updates',
-                                   WorkflowActions.customizer('disable.png'))
+                                   item_customizer('disable.png'))
             else:
                 self.workflow.item('Enabled: {0}'.format(settings['enabled']),
                                    'Workflow will automatically search for updates',
-                                   WorkflowActions.customizer('update.png'))
+                                   item_customizer('update.png'))
 
-                self.workflow.item('Frequency: {0}'.format(settings['frequency'] or 86400),
-                                   'The frequency with which the workflow will look for new versions',
-                                   WorkflowActions.customizer('time.png'))
+                self.workflow.item('Frequency: {0}'.format(settings['frequency'] or 1),
+                                   'The frequency in days with which the workflow will look for new versions',
+                                   item_customizer('time.png'))
 
                 self.workflow.item('Include releases: {0}'.format(settings['include-prereleases'] or False),
                                    'Whether pre-releases will be included in the updates or not',
-                                   WorkflowActions.customizer('release.png'))
+                                   item_customizer('release.png'))
 
             return True
 
@@ -115,10 +115,10 @@ class WorkflowActions(dict):
         self.remove(self.update_keys, ['--do-daily-updates', '--do-weekly-updates', '--do-monthly-updates',
                                        '--do-yearly-updates'])
 
-        options['--do-daily-updates'] = self.update_option('update', 'frequency', 86400, callback)
-        options['--do-weekly-updates'] = self.update_option('update', 'frequency', 604800, callback)
-        options['--do-monthly-updates'] = self.update_option('update', 'frequency', 18144000, callback)
-        options['--do-yearly-updates'] = self.update_option('update', 'frequency', 217728000, callback)
+        options['--do-daily-updates'] = self.update_option('update', 'frequency', 1, callback)
+        options['--do-weekly-updates'] = self.update_option('update', 'frequency', 7, callback)
+        options['--do-monthly-updates'] = self.update_option('update', 'frequency', 30, callback)
+        options['--do-yearly-updates'] = self.update_option('update', 'frequency', 365, callback)
 
         self.update(options)
         self.update_keys.extend(options.keys())
@@ -139,9 +139,9 @@ class WorkflowActions(dict):
         self.update(options)
         self.update_keys.extend(options.keys())
 
-    def force_update(self):
+    def install_update(self):
         def process():
-            self.workflow.update(True)
+            self.workflow.install_update()
 
         return process
 
@@ -159,7 +159,7 @@ class WorkflowActions(dict):
             self.workflow.save_settings()
 
             self.workflow.item('Setting {0} updated successfully'.format(option),
-                               'Changed from {0} to {1}'.format(old, value), WorkflowActions.customizer('ok.png'))
+                               'Changed from {0} to {1}'.format(old, value), item_customizer('ok.png'))
 
             callback()
 
@@ -171,7 +171,7 @@ class WorkflowActions(dict):
         def display():
             for key in self.update_keys:
                 if key in self.keys():
-                    self.workflow.item(key, WorkflowActions.descriptions[key], WorkflowActions.customizer('empty.png'))
+                    self.workflow.item(key, WorkflowActions.descriptions[key], item_customizer('empty.png'))
 
             return True
 
@@ -182,16 +182,3 @@ class WorkflowActions(dict):
             self.pop(option, '')
             if option in set:
                 set.remove(option)
-
-    @staticmethod
-    def customizer(icon=None, valid=False, arg=None):
-        icon = os.path.join(WorkflowActions.icons, 'icons', icon) if icon else None
-
-        def customize(item):
-            item.icon = icon
-            item.valid = valid
-            item.arg = arg
-
-            return item
-
-        return customize

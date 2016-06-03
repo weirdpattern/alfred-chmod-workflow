@@ -1,6 +1,6 @@
 import os
 
-from utils import PickleSerializer, ensure_path, atomic, atomic_write
+from utils import PickleSerializer, ensure_path, atomic_write, atomic
 
 
 class SerializationException(Exception):
