@@ -22,30 +22,38 @@ class WorkflowSettings(dict):
 
         self.update(self._original)
 
-    @atomic
     def save(self):
-        data = {}
-        data.update(self)
+        @atomic
+        def atomic_save():
+            try:
+                data = {}
+                data.update(self)
 
-        with lock(self._path):
-            with atomic_write(self._path, 'wb') as handle:
-                json.dump(data, handle, sort_keys=True, indent=2, encoding='utf-8')
+                with lock(self._path):
+                    with atomic_write(self._path, 'wb') as handle:
+                        json.dump(data, handle, sort_keys=True, indent=2, encoding='utf-8')
+
+                return True
+            except (OSError, IOError):
+                return False
+
+        return atomic_save(self)
 
     def update(self, *args, **kwargs):
         super(WorkflowSettings, self).update(*args, **kwargs)
-        self.save(self)
+        self.save()
 
     def setdefault(self, key, value=None):
         results = super(WorkflowSettings, self).setdefault(key, value)
-        self.save(self)
+        self.save()
 
         return results
 
     def __setitem__(self, key, value):
         if self._original.get(key) != value:
             super(WorkflowSettings, self).__setitem__(key, value)
-            self.save(self)
+            self.save()
 
     def __delitem__(self, key):
         super(WorkflowSettings, self).__delitem__(key)
-        self.save(self)
+        self.save()

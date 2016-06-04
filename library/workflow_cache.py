@@ -63,13 +63,20 @@ class WorkflowCache:
 
         return data
 
-    @atomic
     def save(self, filename, data):
-        path = os.path.join(self.directory, '{0}.{1}'.format(filename, self.serializer.name or 'custom'))
-        with atomic_write(path, 'wb') as handle:
-            self.serializer.dump(data, handle)
+        @atomic
+        def atomic_save():
 
-        return True
+            try:
+                path = os.path.join(self.directory, '{0}.{1}'.format(filename, self.serializer.name or 'custom'))
+                with atomic_write(path, 'wb') as handle:
+                    self.serializer.dump(data, handle)
+
+                return True
+            except (OSError, IOError):
+                return False
+
+        return atomic_save(self)
 
     def clear(self, filename):
         path = os.path.join(self.directory, '{0}.{1}'.format(filename, self.serializer.name or 'custom'))

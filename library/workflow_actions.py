@@ -154,9 +154,8 @@ class WorkflowActions(dict):
     def update_option(self, setting, option, value, callback):
         def process():
             old = self.workflow.setting(setting, option)
-
             self.workflow.setting(setting)[option] = value
-            self.workflow.save_settings()
+            self.workflow.settings.save()
 
             self.workflow.item('Setting {0} updated successfully'.format(option),
                                'Changed from {0} to {1}'.format(old, value), item_customizer('ok.png'))

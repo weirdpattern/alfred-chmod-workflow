@@ -3,7 +3,7 @@
   "help": "https://github.com/weirdpattern/alfred-chmod-workflow", 
   "update": {
     "enabled": true, 
-    "frequency": 1, 
+    "frequency": 7, 
     "include-prereleases": false, 
     "repository": {
       "github": {

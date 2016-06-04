@@ -180,23 +180,24 @@ class Workflow:
 
         return self._version
 
-    def setting(self, setting, *params):
+    @property
+    def settings(self):
         if not self._settings:
             self._settings = WorkflowSettings(os.path.join(self.directory, 'settings.json'), self._defaults)
 
+        return self._settings
+
+    def setting(self, setting, *params):
         if len(params) == 0:
-            return self._settings.get(setting)
+            return self.settings.get(setting)
         else:
-            setting = self._settings.get(setting)
+            setting = self.settings.get(setting)
             for param in params:
                 setting = setting[param]
                 if not setting:
                     return None
 
             return setting
-
-    def save_settings(self):
-        self._settings.save()
 
     def install_update(self):
         if self.setting('update', 'enabled'):

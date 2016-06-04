@@ -49,17 +49,23 @@ class WorkflowData:
         with open(path, 'rb') as handler:
             return self.serializer.load(handler)
 
-    @atomic
     def save(self, filename, data):
-        path = os.path.join(self.directory, '{0}.{1}'.format(filename, self.serializer.name or 'custom'))
-        settings = os.path.join(self.workflow.directory, 'settings.json')
-        if path == settings:
-            raise SerializationException('Settings file is maintained automatically')
+        @atomic
+        def atomic_save():
+            try:
+                path = os.path.join(self.directory, '{0}.{1}'.format(filename, self.serializer.name or 'custom'))
+                settings = os.path.join(self.workflow.directory, 'settings.json')
+                if path == settings:
+                    raise SerializationException('Settings file is maintained automatically')
 
-        with atomic_write(path, 'wb') as handle:
-            self.serializer.dump(data, handle)
+                with atomic_write(path, 'wb') as handle:
+                    self.serializer.dump(data, handle)
 
-        return True
+                return True
+            except (OSError, IOError):
+                return False
+
+        return atomic_save(self)
 
     def clear(self, filename):
         path = os.path.join(self.directory, '{0}.{1}'.format(filename, self.serializer.name or 'custom'))
