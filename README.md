@@ -1,14 +1,14 @@
 # Alfred 'chmod' workflow
 
-Easily get the correct chmod permission number you are looking for
+Easily get the correct chmod permissions every time!
 
-Supports numbers:
+You can input numbers
 
-![Supports numbers][numbers]
+<center>![Supports numbers][numbers]</center>
 
-Supports permissions:
+Or you can input permissions
 
-![Supports permissions][permissions]
+<center>![Supports permissions][permissions]</center>
 
-[numbers]: https://media.giphy.com/media/IS2eYNn2uNvWw/giphy.gif
-[permissions]: https://media.giphy.com/media/a4btWwQz8AfYY/giphy.gif 
+[numbers]: https://media.giphy.com/media/dPTPV1TCWKx3i/giphy.gif
+[permissions]: https://media.giphy.com/media/9Ekjt0xkeNdUA/giphy.gif
