@@ -28,9 +28,9 @@ def main(workflow):
                       lambda item: with_info(item, 'others.png', False))
 
     elif expression:
-        owner = get_number_from_permission(expression.group(0))
-        group = get_number_from_permission(expression.group(1))
-        others = get_number_from_permission(expression.group(2))
+        owner = get_number_from_permission(expression.group(1))
+        group = get_number_from_permission(expression.group(2))
+        others = get_number_from_permission(expression.group(3))
 
         chmod = 'chmod {0}{1}{2}'.format(owner[0], group[0], others[0])
         workflow.item(chmod, 'Copy {0} to clipboard'.format(chmod),
