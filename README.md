@@ -3,9 +3,11 @@
 Easily get the correct chmod permission number you are looking for
 
 Supports numbers:
+
 ![Supports numbers][numbers]
 
 Supports permissions:
+
 ![Supports permissions][permissions]
 
 [numbers]: https://media.giphy.com/media/IS2eYNn2uNvWw/giphy.gif
