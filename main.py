@@ -7,7 +7,7 @@ from library import Workflow
 def main(workflow):
     query = workflow.args[0]
     numbers = re.match(r'^[0-7]{3}$', query)
-    expression = re.match(r'^((?:r|-)(?:w|-)(?:x|-))\s*((?:r|-)(?:w|-)(?:x|-))\s*((?:r|-)(?:w|-)(?:x|-))\s*', query)
+    expression = re.match(r'^((?:r|-)(?:w|-)(?:x|-))\s*((?:r|-)(?:w|-)(?:x|-))\s*((?:r|-)(?:w|-)(?:x|-))\s*$', query)
 
     if numbers:
         owner = get_permission_from_number(int(query[0]))

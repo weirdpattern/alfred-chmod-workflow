@@ -1,0 +1,2 @@
+# Alfred 'chmod' workflow
+
