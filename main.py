@@ -5,9 +5,10 @@ from library import Workflow
 
 
 def main(workflow):
-    query = workflow.args[0]
-    numbers = re.match(r'^[0-7]{3}$', query)
-    expression = re.match(r'^((?:r|-)(?:w|-)(?:x|-))\s*((?:r|-)(?:w|-)(?:x|-))\s*((?:r|-)(?:w|-)(?:x|-))\s*$', query)
+    query = ' '.join(workflow.args).lower()
+    numbers = re.match(r'^[0-7]{3}$', query, re.I)
+    expression = re.match(r'^((?:r|-)(?:w|-)(?:x|-))\s*((?:r|-)(?:w|-)(?:x|-))\s*((?:r|-)(?:w|-)(?:x|-))\s*$',
+                          query, re.I)
 
     if numbers:
         owner = get_permission_from_number(int(query[0]))
@@ -16,16 +17,16 @@ def main(workflow):
 
         chmod = 'chmod {0}{1}{2}'.format(owner[0], group[0], others[0])
         workflow.item(chmod, 'Copy {0} to clipboard'.format(chmod),
-                      lambda item: with_info(item, 'terminal.png', True, chmod))
+                      lambda item: customizer(item, workflow.resource('resources/terminal.png'), True, chmod))
 
         workflow.item('Owner {0}'.format(owner[0]), 'has {0} access'.format(owner[1]),
-                      lambda item: with_info(item, 'owner.png', False))
+                      lambda item: customizer(item, workflow.resource('resources/owner.png'), False))
 
         workflow.item('Group {0}'.format(group[0]), 'has {0} access'.format(group[1]),
-                      lambda item: with_info(item, 'group.png', False))
+                      lambda item: customizer(item, workflow.resource('resources/group.png'), False))
 
         workflow.item('Others {0}'.format(others[0]), 'has {0} access'.format(others[1]),
-                      lambda item: with_info(item, 'others.png', False))
+                      lambda item: customizer(item, workflow.resource('resources/others.png'), False))
 
     elif expression:
         owner = get_number_from_permission(expression.group(1))
@@ -34,19 +35,19 @@ def main(workflow):
 
         chmod = 'chmod {0}{1}{2}'.format(owner[0], group[0], others[0])
         workflow.item(chmod, 'Copy {0} to clipboard'.format(chmod),
-                      lambda item: with_info(item, 'terminal.png', True, chmod))
+                      lambda item: customizer(item, workflow.resource('resources/terminal.png'), True, chmod))
 
         workflow.item('Owner {0}'.format(owner[0]), '{0} access'.format(owner[1]),
-                      lambda item: with_info(item, 'owner.png', False))
+                      lambda item: customizer(item, workflow.resource('resources/owner.png'), False))
 
         workflow.item('Group {0}'.format(group[0]), '{0} access'.format(group[1]),
-                      lambda item: with_info(item, 'group.png', False))
+                      lambda item: customizer(item, workflow.resource('resources/group.png'), False))
 
         workflow.item('Others {0}'.format(others[0]), '{0} access'.format(others[1]),
-                      lambda item: with_info(item, 'others.png', False))
+                      lambda item: customizer(item, workflow.resource('resources/others.png'), False))
     else:
         workflow.item('Change Mode', 'Please input a valid permission set i.e. 777, rwxrw-rw',
-                      lambda item: with_info(item, 'terminal.png', False))
+                      lambda item: customizer(item, workflow.resource('resources/terminal.png'), False))
 
     workflow.feedback()
 
@@ -93,7 +94,7 @@ def get_number_from_permission(expression):
     return [str(number), format_description(description)]
 
 
-def with_info(item, icon, valid, arg=None):
+def customizer(item, icon, valid, arg=None):
     item.icon = icon
     item.valid = valid
 
@@ -116,4 +117,22 @@ def format_description(description):
     return access
 
 if __name__ == '__main__':
-    sys.exit(Workflow.run(main, Workflow()))
+    
+    defaults = {
+        'actionable': True,
+        'help': 'https://github.com/weirdpattern/alfred-chmod-workflow',
+        'update': {
+            'enabled': True,
+            'frequency': 7,
+            'include-prereleases': False,
+            'repository': {
+                'github': {
+                    'repository': 'alfred-chmod-workflow',
+                    'username': 'weirdpattern'
+                }
+            }
+        }
+    }
+    
+    sys.exit(Workflow.run(main, Workflow(defaults)))
+
